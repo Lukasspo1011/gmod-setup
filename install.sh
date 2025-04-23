@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Garry's Mod Installer für Proxmox CT/VM mit 1GB RAM
-# Erstellt von ChatGPT für dich :)
+# Garry's Mod Installer für Proxmox CT/VM
+# Erstellt von ChatGPT für dich ;)
 
 # =========================
 # Variablen
@@ -11,9 +11,6 @@ GARRYSMOD_DIR="$HOME/gmod_server"
 APP_ID=4020
 WORKSHOP_COLLECTION_ID="123456789" # <-- Ändern!
 GSLT="" # <-- Optional: Steam Game Server Login Token
-
-# RAM-Größe für den Server
-RAM_SIZE="1024"  # In MB, hier 1GB RAM
 
 # =========================
 # Abhängigkeiten installieren
@@ -70,26 +67,6 @@ screen -dmS gmod ./srcds_run -game garrysmod +maxplayers 12 +map gm_flatgrass +g
 EOF
 chmod +x "$GARRYSMOD_DIR/start_gmod.sh"
 
-# =========================
-# RAM auf 1 GB setzen
-# =========================
-echo "[+] Setze RAM-Größe auf 1 GB..."
-if command -v pct &> /dev/null; then
-    # Container in Proxmox
-    echo "[+] Container gefunden, setze RAM auf 1GB"
-    pct set $1 -memory $RAM_SIZE
-elif command -v qm &> /dev/null; then
-    # VM in Proxmox
-    echo "[+] VM gefunden, setze RAM auf 1GB"
-    qm set $1 -memory $RAM_SIZE
-else
-    echo "[!] Keine passende Proxmox-Umgebung gefunden (Container oder VM)."
-    exit 1
-fi
-
-# =========================
-# Fertigstellung
-# =========================
-echo "[✓] Garry's Mod Server ist installiert und der RAM wurde auf 1GB gesetzt!"
+echo "[✓] Garry's Mod Server ist installiert!"
 echo "Starte ihn mit:"
 echo "    $GARRYSMOD_DIR/start_gmod.sh"
