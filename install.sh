@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Garry's Mod Installer für Proxmox CT/VM
-# Erstellt von ChatGPT für dich ;)
-
 # =========================
 # Variablen
 # =========================
@@ -11,6 +8,27 @@ GARRYSMOD_DIR="$HOME/gmod_server"
 APP_ID=4020
 WORKSHOP_COLLECTION_ID="123456789" # <-- Ändern!
 GSLT="" # <-- Optional: Steam Game Server Login Token
+
+# RAM-Größe für den Server (1 GB = 1024 MB)
+RAM_SIZE="1024"  # In MB, hier 1GB RAM
+
+# Proxmox CT-Name und ID
+CT_NAME="gmod-server"
+CT_ID="100"  # <-- Container-ID (wählbar)
+
+# =========================
+# Proxmox Container erstellen (optional)
+# =========================
+echo "[+] Erstelle Proxmox Container $CT_ID mit $RAM_SIZE MB RAM..."
+pct create $CT_ID /var/lib/vz/template/cache/ubuntu-20.04-standard_20.04-1_amd64.tar.gz \
+    -hostname $CT_NAME \
+    -memory $RAM_SIZE \
+    -cores 2 \
+    -swap 512 \
+    -net0 name=eth0,bridge=vmbr0,ip=dhcp \
+    -rootfs local-lvm:8 \
+    -password "changeme" \
+    -start 1
 
 # =========================
 # Abhängigkeiten installieren
@@ -58,7 +76,7 @@ sv_workshop_allow_other_maps 1
 EOF
 
 # =========================
-# Startskript
+# Startskript erstellen
 # =========================
 cat <<EOF > "$GARRYSMOD_DIR/start_gmod.sh"
 #!/bin/bash
@@ -67,6 +85,12 @@ screen -dmS gmod ./srcds_run -game garrysmod +maxplayers 12 +map gm_flatgrass +g
 EOF
 chmod +x "$GARRYSMOD_DIR/start_gmod.sh"
 
-echo "[✓] Garry's Mod Server ist installiert!"
-echo "Starte ihn mit:"
+# =========================
+# Fertigstellung
+# =========================
+echo "[✓] Garry's Mod Server ist installiert und der Container $CT_ID wurde erstellt!"
+echo "Starte den Server mit:"
 echo "    $GARRYSMOD_DIR/start_gmod.sh"
+echo
+echo "[✓] Der Proxmox Container $CT_ID wurde erfolgreich erstellt und konfiguriert!"
+echo "[+] Der Container kann über Proxmox gestartet werden: pct start $CT_ID"
