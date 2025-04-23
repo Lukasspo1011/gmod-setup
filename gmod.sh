@@ -1,15 +1,15 @@
 #!/bin/bash
 
-# --- CONFIGURATION ---
-CTID=120                     # Container ID
-VMID=120                     # VM ID für die Containererstellung
+# --- KONFIGURATION ---
+CTID=121                     # Neue Container-ID
+VMID=121                     # VM-ID für die Containererstellung
 TEMPLATE="debian-12-standard_12.7-1_amd64.tar.zst"   # Das Template, das du verwendest
 DISK_SIZE="10G"              # Die Festplattengröße für den Container
-RAM="2048"                   # RAM-Größe in MB
+RAM="1024"                   # RAM-Größe in MB (angepasst auf 1024 MB)
 CPUS="2"                     # Anzahl der CPUs
 NET="bridge=vmbr0,ip=dhcp"   # Netzwerkeinstellungen
 
-# --- CREATE LXC CONTAINER ---
+# --- LXC CONTAINER ERSTELLEN ---
 echo "[INFO] Erstelle LXC Container $CTID (gmod-server)..."
 pct create $CTID /var/lib/vz/template/cache/$TEMPLATE \
   -disk $DISK_SIZE \
@@ -21,11 +21,11 @@ pct create $CTID /var/lib/vz/template/cache/$TEMPLATE \
   -rootfs local-lvm:10 \
   -swap 512
 
-# --- START CONTAINER ---
+# --- CONTAINER STARTEN ---
 echo "[INFO] Starte Container $CTID..."
 pct start $CTID
 
-# --- INSTALLIEREN VON GARRY'S MOD ---
+# --- INSTALLATION VON GARRY'S MOD ---
 echo "[INFO] Installiere Garry's Mod im Container..."
 
 # Container anfragen
@@ -38,4 +38,3 @@ pct exec $CTID -- bash -c "/opt/steamcmd/steamcmd.sh +login anonymous +force_ins
 
 # --- FERTIGSTELLUNG ---
 echo "[INFO] Garry's Mod LXC Container wurde erfolgreich eingerichtet!"
-
