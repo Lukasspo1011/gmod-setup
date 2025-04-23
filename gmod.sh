@@ -1,38 +1,41 @@
 #!/bin/bash
 
-# === Konfiguration ===
-CTID=120
-HOSTNAME="gmod-server"
-PASSWORD="gmodpass"
-DISK_SIZE="10"  # in GB (ohne G)
-MEMORY="2048"
-CORES="2"
-TEMPLATE="local:vztmpl/debian-12-standard_12.2-1_amd64.tar.zst"
-STORAGE="local-lvm"
-BRIDGE="vmbr0"
-IP="dhcp"
+# --- CONFIGURATION ---
+CTID=120                     # Container ID
+VMID=120                     # VM ID für die Containererstellung
+TEMPLATE="debian-12-standard_12.7-1_amd64.tar.zst"   # Das Template, das du verwendest
+DISK_SIZE="10G"              # Die Festplattengröße für den Container
+RAM="2048"                   # RAM-Größe in MB
+CPUS="2"                     # Anzahl der CPUs
+NET="bridge=vmbr0,ip=dhcp"   # Netzwerkeinstellungen
 
-echo "[INFO] Erstelle LXC Container $CTID ($HOSTNAME)..."
+# --- CREATE LXC CONTAINER ---
+echo "[INFO] Erstelle LXC Container $CTID (gmod-server)..."
+pct create $CTID /var/lib/vz/template/cache/$TEMPLATE \
+  -disk $DISK_SIZE \
+  -memory $RAM \
+  -cores $CPUS \
+  -net $NET \
+  -hostname gmod-server \
+  -password yourpassword123 \
+  -rootfs local-lvm:10 \
+  -swap 512
 
-pct create $CTID $TEMPLATE \
-  --hostname $HOSTNAME \
-  --rootfs ${STORAGE}:${DISK_SIZE} \
-  --cores $CORES \
-  --memory $MEMORY \
-  --net0 name=eth0,bridge=$BRIDGE,ip=$IP \
-  --password $PASSWORD \
-  --features nesting=1 \
-  --unprivileged 1
-
-echo "[INFO] Starte Container..."
+# --- START CONTAINER ---
+echo "[INFO] Starte Container $CTID..."
 pct start $CTID
-sleep 5
 
-echo "[INFO] Installiere benötigte Pakete im Container..."
-pct exec $CTID -- apt update
-pct exec $CTID -- apt install -y curl wget ca-certificates
+# --- INSTALLIEREN VON GARRY'S MOD ---
+echo "[INFO] Installiere Garry's Mod im Container..."
 
-echo "[INFO] Führe Installationsskript für Garry's Mod aus..."
-pct exec $CTID -- bash -c "$(curl -fsSL https://raw.githubusercontent.com/Lukasspo1011/gmod-setup/main/install.sh)"
+# Container anfragen
+pct exec $CTID -- apt update && apt upgrade -y
+pct exec $CTID -- apt install -y wget tmux lib32gcc-s1 lib32stdc++6
 
-echo "[DONE] Garry's Mod LXC Container wurde erfolgreich eingerichtet!"
+# Garry's Mod Installation
+pct exec $CTID -- bash -c "cd /opt && wget https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz && tar -xvzf steamcmd_linux.tar.gz"
+pct exec $CTID -- bash -c "/opt/steamcmd/steamcmd.sh +login anonymous +force_install_dir /opt/gmod +app_update 4020 validate +quit"
+
+# --- FERTIGSTELLUNG ---
+echo "[INFO] Garry's Mod LXC Container wurde erfolgreich eingerichtet!"
+
